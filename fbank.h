@@ -88,6 +88,8 @@ public:
         dither_ = dither;
     }
 
+    int NumBins() const { return num_bins_; }
+
     static inline float InverseMelScale(float mel_freq) {
         return 700.0f * (expf (mel_freq / 1127.0f) - 1.0f);
     }
@@ -167,9 +169,9 @@ public:
                 }
 
                 (*feat)[i * num_bins_ + j] = mel_energy;
-                printf("%f ", mel_energy);
+                //printf("%f ", mel_energy);
             }
-            printf("\n");
+            //printf("\n");
 
         }
         return num_frames;
