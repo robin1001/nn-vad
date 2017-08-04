@@ -498,6 +498,16 @@ void Net::Quantize(Net *quantize_net) const {
                     quantize_net->AddLayer(relu);
                 }
                 break;
+            case kSigmoid: {
+                    Sigmoid *sigmoid = new Sigmoid(in_dim, out_dim);
+                    quantize_net->AddLayer(sigmoid);
+                }
+                break;
+            case kTanh: {
+                    Tanh *tanh = new Tanh(in_dim, out_dim);
+                    quantize_net->AddLayer(tanh);
+                }
+                break;
             default:
                 ERROR("Unable to quantize layer, type %s", 
                         LayerTypeToString(type).c_str());
