@@ -12,10 +12,26 @@
 #ifndef KWS_H_
 #define KWS_H_
 
+struct FeaturePipelineConfig {
+    int num_bins;
+    int sample_rate;
+    int frame_length;
+    int frame_shift;
+    int left_context, right_context;
+    std::string cmvn_file;
+    FeaturePipelineConfig(): 
+        num_bins(40), // 40 dim fbank
+        sample_rate(16000), // 16k sample rate
+        frame_length(400), // frame length 25ms,
+        frame_shift(160), // frame shift 16ms
+        left_context(10),
+        right_context(5) {
+    }
+};
+
 class FeaturePipeline {
 public:
-    FeaturePipeline(Fbank &fbank, std::string cmvn_file, 
-        int left_context = 0, int right_context = 0);
+    FeaturePipeline(const FeaturePipelineConfig &config);
 
     void AcceptRawWav(const std::vector<float> &wav);
     int NumFramesReady() const;
@@ -33,12 +49,13 @@ public:
     }
 private:
     void ReadCmvn(const std::string cmvn_file);
-    Fbank &fbank_;
+    const FeaturePipelineConfig &config_;
     // mean: first row, inv_var: second row
-    Matrix<float> cmvn_;
     int left_context_, right_context_;
-    std::vector<float> feature_buf_;
     int raw_feat_dim_;
+    Matrix<float> cmvn_;
+    Fbank fbank_;
+    std::vector<float> feature_buf_;
     int num_frames_;
     bool done_;
     // TODO
@@ -51,11 +68,19 @@ class Kws {
 
 class DtwKws : public Kws {
 public:
-   DtwKws(Net &net): net_(net) {}
-
+    DtwKws(const FeaturePipelineConfig &config, std::string net_file): 
+        config_(config), feature_pipeline_(config), 
+        net_(net_file), registered_(false) {}
+    float Cos(float *a, float *b, int n);
+    void RegisterOnce(const std::vector<float> &wav);
+    int RegisterDone();
 private:
-    Net &net_;
+    Net net_;
+    const FeaturePipelineConfig &config_;
+    FeaturePipeline feature_pipeline_;
+    std::vector<Matrix<float> *> register_samples_;
+    Matrix<float> template_;
+    bool registered_;
 };
 
 #endif
-

@@ -19,12 +19,19 @@ int main(int argc, char *argv[]) {
     }
 
     std::vector<float> wave(reader.Data(), reader.Data() + num_samples);
-    std::vector<float> feat;
-    // frame_length 0.025 * 16000, frame_shift 0.010 * 16000
-    Fbank fbank(40, sample_rate, 400, 160);
-    FeaturePipeline feature_pipeline(fbank, "../model/kws.cmvn", 10, 5);
+
+    FeaturePipelineConfig config;
+    config.num_bins = 40;
+    config.frame_shift = 160;
+    config.frame_length = 400;
+    config.sample_rate = 16000;
+    config.left_context = 10;
+    config.right_context = 5;
+    config.cmvn_file = "../model/kws.cmvn";
+    FeaturePipeline feature_pipeline(config);
     feature_pipeline.AcceptRawWav(wave);
     feature_pipeline.SetDone();
+    std::vector<float> feat;
     int num_frames = feature_pipeline.ReadAllFeature(&feat);
     int feat_dim = feature_pipeline.FeatureDim();
 

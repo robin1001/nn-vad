@@ -22,6 +22,12 @@ Matrix<DType>::Matrix(int32_t row, int32_t col): rows_(row), cols_(col), data_(N
 }
 
 template <typename DType>
+Matrix<DType>::Matrix(DType *data, int32_t row, int32_t col) {
+    Resize(row, col);
+    memcpy(data_, data, row * col * sizeof(DType));
+}
+
+template <typename DType>
 void Matrix<DType>::Resize(int32_t row, int32_t col) {
     if (data_ == NULL || row * col != rows_ * cols_) {
         if (data_ != NULL) delete [] data_;
@@ -116,10 +122,22 @@ void Matrix<DType>::Transpose(const Matrix<DType> &mat) {
 }
 
 template <typename DType>
+void Matrix<DType>::CopyFrom(const Matrix<DType> &mat) {
+    Resize(mat.NumRows(), mat.NumCols());
+    memcpy(data_, mat.Data(), rows_ * cols_ * sizeof(DType));
+}
+
+template <typename DType>
 Vector<DType>::Vector(int32_t dim): dim_(dim), data_(NULL) {
     if (dim_ != 0) {
         data_ = new DType[dim]();
     }
+}
+
+template <typename DType>
+Vector<DType>::Vector(DType *data, int32_t dim) {
+    Resize(dim);
+    memcpy(data_, data, dim * sizeof(DType));
 }
 
 template <typename DType>

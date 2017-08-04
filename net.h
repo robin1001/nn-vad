@@ -24,6 +24,7 @@ template <typename DType>
 class Matrix {
 public: 
     Matrix(int32_t row = 0, int32_t col = 0); 
+    Matrix(DType *data, int32_t row, int32_t col); 
     virtual ~Matrix() { 
         if (data_ != NULL) delete [] data_; 
     }
@@ -48,6 +49,7 @@ public:
              bool transpose = false, float alpha = 0.0);
     void Transpose(const Matrix<DType> &mat);
     void AddVec(const Vector<DType> &vec);
+    void CopyFrom(const Matrix<DType> &mat); 
 private:
     int32_t rows_, cols_;
     DType *data_;
@@ -59,6 +61,7 @@ template <typename DType>
 class Vector {
 public: 
     Vector(int32_t dim = 0); 
+    Vector(DType *data, int32_t dim); 
     virtual ~Vector() { 
         if (data_ != NULL) delete [] data_; 
     }

@@ -8,7 +8,7 @@ BIN = tools/net-quantization
 
 TEST = test/fbank-test test/kws-test
 
-all: $(TEST) $(BIN)
+all: $(TEST) $(BIN) $(OBJ)
 
 test/%: test/%.cc $(OBJ)
 	$(CXX) $< $(OBJ) $(CXXFLAGS) -o $@

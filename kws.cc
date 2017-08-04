@@ -3,13 +3,15 @@
  */
 #include "kws.h"
 
-FeaturePipeline::FeaturePipeline(Fbank &fbank, std::string cmvn_file, 
-        int left_context, int right_context): 
-        fbank_(fbank), 
-        left_context_(left_context), right_context_(right_context),
-        raw_feat_dim_(fbank_.NumBins()), num_frames_(0),
+FeaturePipeline::FeaturePipeline(const FeaturePipelineConfig &config):
+        config_(config),
+        left_context_(config.left_context), 
+        right_context_(config.right_context),
+        raw_feat_dim_(config.num_bins), 
+        fbank_(config.num_bins, config.sample_rate, config.frame_length, config.frame_shift),
+        num_frames_(0),
         done_(false) {
-    ReadCmvn(cmvn_file);
+    ReadCmvn(config.cmvn_file);
 }
 
 void FeaturePipeline::ReadCmvn(const std::string cmvn_file) {
@@ -77,6 +79,24 @@ int FeaturePipeline::ReadFeature(int t, std::vector<float> *feat) {
 
 int FeaturePipeline::ReadAllFeature(std::vector<float> *feat) {
     return ReadFeature(0, feat);
+}
+
+void DtwKws::RegisterOnce(const std::vector<float> &wave) {
+    feature_pipeline_.AcceptRawWav(wave);
+    feature_pipeline_.SetDone();
+    std::vector<float> feat;
+    int num_frames = feature_pipeline_.ReadAllFeature(&feat);
+    int feat_dim = feature_pipeline_.FeatureDim();
+    Matrix<float> in(feat.data(), num_frames, feat_dim), 
+                  *out = new Matrix<float>;
+    register_samples_.push_back(out);    
+}
+
+void DtwKws::RegisterDone() {
+    // select reference sample
+    // dtw
+    // average
+    registered_ = true;
 }
 
 
