@@ -26,7 +26,7 @@ public:
     Matrix(int32_t row = 0, int32_t col = 0); 
     Matrix(DType *data, int32_t row, int32_t col); 
     virtual ~Matrix() { 
-        if (data_ != NULL) delete [] data_; 
+        if (holder_ && data_ != NULL) delete [] data_; 
     }
     void Resize(int32_t row, int32_t col);
     DType *Data() const { return data_; }
@@ -50,10 +50,13 @@ public:
     void Transpose(const Matrix<DType> &mat);
     void AddVec(const Vector<DType> &vec);
     void CopyFrom(const Matrix<DType> &mat); 
+    Vector<DType> Row(int row) const;
+    Matrix<DType> RowRange(int start, int length) const;
 private:
     int32_t rows_, cols_;
     DType *data_;
-    DISALLOW_COPY_AND_ASSIGN(Matrix);
+    bool holder_; // if hold the memory
+    //DISALLOW_COPY_AND_ASSIGN(Matrix);
 };
 
 
@@ -63,7 +66,7 @@ public:
     Vector(int32_t dim = 0); 
     Vector(DType *data, int32_t dim); 
     virtual ~Vector() { 
-        if (data_ != NULL) delete [] data_; 
+        if (holder_ && data_ != NULL) delete [] data_; 
     }
     void Resize(int32_t dim);
     DType *Data() const { return data_; }
@@ -79,10 +82,13 @@ public:
         return *(data_ + n);
     }
     void CopyFrom(const Vector<DType> &vec);
+    void Add(const Vector<DType> &vec, float alpha = 1.0);
+    void Scale(float alpha);
 private:
     int32_t dim_;
     DType *data_;
-    DISALLOW_COPY_AND_ASSIGN(Vector);
+    bool holder_; // if hold the memory
+    //DISALLOW_COPY_AND_ASSIGN(Vector);
 };
 
 /* Quantization Functions */

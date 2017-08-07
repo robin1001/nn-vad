@@ -9,16 +9,6 @@ int main(int argc, char *argv[]) {
 
     const char *usage = "Test kws\n";
 
-    WavReader reader("2.wav");
-    int sample_rate = reader.SampleRate();
-    int num_channels = reader.NumChannel();
-    int num_samples = reader.NumSample();
-    if (num_channels != 1) {
-        printf("only one channel wav file is supported");
-        exit(-1);
-    }
-
-    std::vector<float> wave(reader.Data(), reader.Data() + num_samples);
 
     FeaturePipelineConfig config;
     config.num_bins = 40;
@@ -28,26 +18,48 @@ int main(int argc, char *argv[]) {
     config.left_context = 10;
     config.right_context = 5;
     config.cmvn_file = "../model/kws.cmvn";
-    FeaturePipeline feature_pipeline(config);
-    feature_pipeline.AcceptRawWav(wave);
-    feature_pipeline.SetDone();
-    std::vector<float> feat;
-    int num_frames = feature_pipeline.ReadAllFeature(&feat);
-    int feat_dim = feature_pipeline.FeatureDim();
 
-    Matrix<float> in(num_frames, feat_dim), out;
-    memcpy(in.Data(), feat.data(), num_frames * feat_dim * sizeof(float));
+    DtwKwsConfig dtw_config;
+    dtw_config.feature_config = config;
+    dtw_config.net_file = "../model/kws.quantize.net"; //"../model/kws.net"
+    dtw_config.window_size = 150;
+    dtw_config.thresh = 0.80;
 
-    //Net net("../model/kws.net");
-    Net net("../model/kws.quantize.net");
-    net.Forward(in, &out);
-    
-    for (int i = 0; i < out.NumRows(); i++) {
-        for (int j = 0; j < out.NumCols(); j++) {
-            printf("%f ", out(i, j));
-        }
-        printf("\n");
+    DtwKws kws(dtw_config);
+
+    for (int i = 0; i < 3; i++) {
+        std::string filename = "data/train/" + std::to_string(i) + ".wav";
+        WavReader reader(filename.c_str());
+        int sample_rate = reader.SampleRate();
+        int num_channels = reader.NumChannel();
+        int num_samples = reader.NumSample();
+        if (num_channels != 1) {
+            printf("only one channel wav file is supported");
+            exit(-1);
+        }       
+        std::vector<float> wave(reader.Data(), reader.Data() + num_samples);
+
+        kws.RegisterOnce(wave);
     }
+    kws.RegisterDone();
+
+    for (int i = 4; i < 6; i++) {
+        std::string filename = "data/test/150_f_0" + std::to_string(i) + ".wav";
+        printf("%s\n", filename.c_str());
+        WavReader reader(filename.c_str());
+        int sample_rate = reader.SampleRate();
+        int num_channels = reader.NumChannel();
+        int num_samples = reader.NumSample();
+        if (num_channels != 1) {
+            printf("only one channel wav file is supported");
+            exit(-1);
+        }       
+        std::vector<float> wave(reader.Data(), reader.Data() + num_samples);
+       
+        kws.ResetDetector();
+        kws.Detect(wave, true);
+    }
+
     return 0;
 }
 

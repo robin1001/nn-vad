@@ -15,25 +15,25 @@
 /* Matrix & Vector Defination */
 
 template <typename DType>
-Matrix<DType>::Matrix(int32_t row, int32_t col): rows_(row), cols_(col), data_(NULL) {
-    if (row * col != 0) {
-        data_ = new DType[row * col]();
-    }
+Matrix<DType>::Matrix(int32_t row, int32_t col): 
+        rows_(row), cols_(col), data_(NULL), holder_(true) {
+    Resize(rows_, cols_);
 }
 
 template <typename DType>
-Matrix<DType>::Matrix(DType *data, int32_t row, int32_t col) {
-    Resize(row, col);
-    memcpy(data_, data, row * col * sizeof(DType));
+Matrix<DType>::Matrix(DType *data, int32_t row, int32_t col):
+        rows_(row), cols_(col), data_(data), holder_(false) {
 }
 
 template <typename DType>
 void Matrix<DType>::Resize(int32_t row, int32_t col) {
+    if (row * col == 0) return;
     if (data_ == NULL || row * col != rows_ * cols_) {
-        if (data_ != NULL) delete [] data_;
+        if (holder_ && data_ != NULL) delete [] data_;
         rows_ = row;
         cols_ = col;
         data_ = new DType[row * col]();
+        holder_ = true;
     }
 }
 
@@ -128,24 +128,33 @@ void Matrix<DType>::CopyFrom(const Matrix<DType> &mat) {
 }
 
 template <typename DType>
-Vector<DType>::Vector(int32_t dim): dim_(dim), data_(NULL) {
-    if (dim_ != 0) {
-        data_ = new DType[dim]();
-    }
+Matrix<DType> Matrix<DType>::RowRange(int start, int length) const {
+    return Matrix<DType>(data_ + start * cols_, length, cols_);
 }
 
 template <typename DType>
-Vector<DType>::Vector(DType *data, int32_t dim) {
+Vector<DType> Matrix<DType>::Row(int row) const {
+    return Vector<DType>(data_ + row * cols_, cols_);
+}
+template <typename DType>
+Vector<DType>::Vector(int32_t dim): 
+        dim_(dim), data_(NULL), holder_(true) {
     Resize(dim);
-    memcpy(data_, data, dim * sizeof(DType));
+}
+
+template <typename DType>
+Vector<DType>::Vector(DType *data, int32_t dim): 
+        dim_(dim), data_(data), holder_(false) {
 }
 
 template <typename DType>
 void Vector<DType>::Resize(int32_t dim) {
+    if (dim == 0) return;
     if (data_ == NULL || dim != dim_) {
-        if (data_ != NULL) delete [] data_;
+        if (holder_ && data_ != NULL) delete [] data_;
         dim_ = dim;
         data_ = new DType[dim]();
+        holder_ = true;
     }
 }
 
@@ -166,6 +175,20 @@ template <typename DType>
 void Vector<DType>::CopyFrom(const Vector<DType> &vec) {
     Resize(vec.Dim());
     memcpy(data_, vec.Data(), dim_ * sizeof(DType));
+}
+
+template <typename DType>
+void Vector<DType>::Add(const Vector<DType> &vec, float alpha) {
+    for (int i = 0; i < dim_; i++) {
+        (*this)(i) += alpha * vec(i);
+    }
+}
+
+template <typename DType>
+void Vector<DType>::Scale(float alpha) {
+    for (int i = 0; i < dim_; i++) {
+        (*this)(i) *= alpha;
+    }
 }
 
 /* Quantization Functions */
