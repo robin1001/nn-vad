@@ -9,8 +9,8 @@
 #include "fbank.h"
 #include "net.h"
 
-#ifndef KWS_H_
-#define KWS_H_
+#ifndef FEATURE_PIPELINE_H_
+#define FEATURE_PIPELINE_H_
 
 struct FeaturePipelineConfig {
     int num_bins;
@@ -47,6 +47,7 @@ public:
         num_frames_ = 0;
         feature_buf_.clear();
     }
+    int NumFrames(int size) const;
 private:
     void ReadCmvn(const std::string cmvn_file);
     const FeaturePipelineConfig &config_;
@@ -62,45 +63,6 @@ private:
     // add delta support
 };
 
-
-class Kws {
-};
-
-struct DtwKwsConfig {
-    FeaturePipelineConfig feature_config;
-    std::string net_file;
-    int window_size; // frames
-    float thresh; // dtw threshold, 
-    DtwKwsConfig(): window_size(150), thresh(0.8) {}
-};
-
-class DtwKws : public Kws {
-public:
-    DtwKws(const DtwKwsConfig &config): 
-        config_(config), feature_pipeline_(config.feature_config), 
-        net_(config.net_file), registered_(false) {}
-    void RegisterOnce(const std::vector<float> &wav);
-    int RegisterDone();
-
-    bool Detect(const std::vector<float> &wav, bool end_of_stream = true);
-    void ResetDetector();
-private:
-    float Cos(const Vector<float> &vec1, const Vector<float> &vec2) const;
-    void AllRowDistance(const Matrix<float> &mat1, const Matrix<float> &mat2,
-            Matrix<float> *distance) const; 
-    void MinMaxNormalization(Matrix<float> *distance) const;
-    float Dtw(const Matrix<float> &mat1, const Matrix<float> &mat2) const; 
-    float DtwWithAlign(const Matrix<float> &mat1, const Matrix<float> &mat2,
-        std::vector<std::pair<int, int> > *align) const; 
-private:
-    const DtwKwsConfig &config_;
-    Net net_;
-    FeaturePipeline feature_pipeline_;
-    std::vector<Matrix<float> *> register_samples_;
-    Matrix<float> template_;
-    bool registered_;
-    int t_; // time index for t_;
-    std::vector<float> confidence_;
-};
-
 #endif
+
+

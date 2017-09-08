@@ -57,7 +57,18 @@ int main(int argc, char *argv[]) {
         std::vector<float> wave(reader.Data(), reader.Data() + num_samples);
        
         kws.ResetDetector();
-        kws.Detect(wave, true);
+        // offline 
+        //kws.Detect(wave, true);
+        
+        // online
+        int chunk = 0.1 * 16000;
+        for (size_t t = 0; t < wave.size(); t += chunk) {
+            bool end = false; 
+            if ((t + chunk) >= wave.size()) end = true;
+            std::vector<float> sub_wave(wave.data() + t, 
+                    wave.data() + std::min(t + chunk, wave.size()));
+            kws.DetectOnline(sub_wave, end);
+        }
     }
 
     return 0;

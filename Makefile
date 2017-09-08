@@ -2,11 +2,11 @@ CXX = g++
 
 CXXFLAGS = -g -std=c++11 -I . -lpthread -msse4.1 -lopenblas -D USE_BLAS
 
-OBJ = kws.o net.o fft.o
+OBJ = vad.o net.o feature-pipeline.o fft.o
 
-BIN = tools/net-quantization
+BIN = tools/net-quantization tools/apply-vad
 
-TEST = test/fbank-test test/kws-test
+TEST = test/fbank-test
 
 all: $(TEST) $(BIN) $(OBJ)
 
