@@ -76,8 +76,9 @@ int main(int argc, char *argv[]) {
     vad.DoVad(wave, true);
     //vad.Lookback();
     const std::vector<bool> &results = vad.Results();
+    float time = static_cast<float>(num_samples) / sample_rate;
     int cur = 0;
-    printf("%s", wav_file.c_str());
+    printf("%s %f", wav_file.c_str(), time);
     while (cur < results.size()) {
         // silence go ahead
         while (cur < results.size() && !results[cur]) cur++;
