@@ -7,10 +7,13 @@ Simple DNN based VAD tools
 ``` sh 
 vad.sh models/2.wav 
 ```
-The above cmd generate speech segment, just like
+
+The above cmd generates speech segments. And serveral parameters are required when you are doing VAD.
+Look at [vad.sh](vad.sh) for details.
+The output segments will like:
 
 ```
-models/2.wav [ 661 720 ]  [ 880 942 ]  [ 1079 1146 ]
+models/2.wav 13.84 [ 661 720 ]  [ 880 942 ]  [ 1079 1146 ]
 ```
 
 
