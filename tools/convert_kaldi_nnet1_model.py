@@ -1,14 +1,12 @@
-#!/usr/bin/python
-
-# Created on 2017-08-02
-# Author: Binbin Zhang
-
 from __future__ import print_function
 
 import sys
 import struct
 import re
 import numpy as np
+import argparse
+
+FLAGS = None
 
 class LayerType:
     fully_connect = 0x00
@@ -120,6 +118,10 @@ class Sigmoid(Component):
     def write(self, fid):
         write_layer_head(fid, LayerType.sigmoid, self.in_dim, self.out_dim)
 
+class ReLU(Component):
+    def write(self, fid):
+        write_layer_head(fid, LayerType.relu, self.in_dim, self.out_dim)
+
 class Tanh(Component):
     def write(self, fid):
         write_layer_head(fid, LayerType.tanh, self.in_dim, self.out_dim)
@@ -157,6 +159,10 @@ def read_nnet1(filename):
                 layer = Tanh()
                 offset = layer.read(arr, offset + 1)
                 net.append(layer)
+            elif token == '<ReLU>': 
+                layer = ReLU()
+                offset = layer.read(arr, offset + 1)
+                net.append(layer)
             elif token == '<Softmax>': 
                 layer = Softmax()
                 offset = layer.read(arr, offset + 1)
@@ -167,7 +173,13 @@ def read_nnet1(filename):
 
 def convert_nnet1_model_to_net(model, out_filename):
     fid = open(out_filename, "wb")
-    for layer in model:
+    for i, layer in enumerate(model[:-1]):
+        print(layer.__class__.__name__, layer.in_dim, layer.out_dim)
+        layer.write(fid)
+    layer = model[-1]
+    if FLAGS.remove_last_softmax and layer.__class__.__name__ == 'Softmax':
+        print('Remove last softmax layer')
+    else:
         print(layer.__class__.__name__, layer.in_dim, layer.out_dim)
         layer.write(fid)
     fid.close()
@@ -175,9 +187,14 @@ def convert_nnet1_model_to_net(model, out_filename):
 if __name__ == '__main__':
     usage = '''Usage: convert kaldi nnet1 model to net model
                eg: convert_kaldi_nnet1_model.py keras_model_file out_net_file'''
-    if len(sys.argv) != 3:
-        error_msg(usage)
-
-    net = read_nnet1(sys.argv[1])
-    convert_nnet1_model_to_net(net, sys.argv[2])
+    parser = argparse.ArgumentParser(description=usage)
+    parser.add_argument('--remove-last-softmax', action='store_true',
+                        help='whether to remove last softmax or not')
+    parser.add_argument('kaldi_nnet1_model',
+                        help='standard kaldi nnet1 text model file')
+    parser.add_argument('out_net_model',
+                        help='net format out file')
+    FLAGS = parser.parse_args()
+    net = read_nnet1(FLAGS.kaldi_nnet1_model)
+    convert_nnet1_model_to_net(net, FLAGS.out_net_model)
 

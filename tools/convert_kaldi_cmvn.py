@@ -22,7 +22,7 @@ def convert_cmvn(kaldi_cmvn_file, out_file):
         assert(arr[0] == '[')
         assert(arr[-2] == '0')
         assert(arr[-1] == ']')
-        feat_dim = (len(arr) - 2 - 2) / 2
+        feat_dim = int((len(arr) - 2 - 2) / 2)
         for i in range(1, feat_dim+1):
             means.append(float(arr[i]))
         count = float(arr[feat_dim+1])
@@ -35,10 +35,10 @@ def convert_cmvn(kaldi_cmvn_file, out_file):
         if variance[i] < 1.0e-20: variance[i] = 1.0e-20
         variance[i] = 1.0 / math.sqrt(variance[i])
 
-    print feat_dim
-    print count
-    print means
-    print variance
+    print(feat_dim)
+    print(count)
+    print(means)
+    print(variance)
     with open(out_file, 'wb') as fid:
         fid.write(struct.pack('<2i', 2, feat_dim))
         for e in means:

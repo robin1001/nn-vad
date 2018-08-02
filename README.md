@@ -21,7 +21,7 @@ If you want to see the details with Praat, the follwing cmd
 will generate the TextGrid with N for none-speech and S for speech respectively.
 
 ``` sh 
-vad.sh models/2.wav | python tools/gen_textgrid
+vad.sh models/2.wav | python tools/gen_textgrid.py
 ```
 
 ### Praat view
