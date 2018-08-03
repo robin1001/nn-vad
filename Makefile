@@ -4,7 +4,7 @@ CXXFLAGS = -g -std=c++11 -MMD -I . -lpthread -msse4.1 -lopenblas -D USE_BLAS
 
 OBJ = vad.o net.o feature-pipeline.o fft.o
 
-BIN = tools/net-quantization tools/apply-vad
+BIN = tools/net-quantization tools/apply-vad tools/net-info
 
 TEST = test/fbank-test
 
