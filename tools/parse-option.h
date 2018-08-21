@@ -28,8 +28,6 @@
 #include <vector>
 #include <map>
 
-namespace xdecoder {
-
 class ParseOptions {
  public:
   explicit ParseOptions(const char* usage): usage_(usage) {}
@@ -226,7 +224,5 @@ class ParseOptions {
   const char *const *argv_;
   std::vector<const char *> args_;
 };
-
-}  // namespace xdecoder
 
 #endif  // PARSE_OPTION_H_
