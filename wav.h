@@ -63,6 +63,16 @@ class WavReader {
     num_channel_ = header.channels;
     sample_rate_ = header.sample_rate;
     bits_per_sample_ = header.bit;
+    // ignore all none data chunk
+    char tag[5] = {0};
+    strncpy(tag, header.data, 4);
+    while (strcmp(tag, "data") != 0) {
+      for (int i = 0; i < header.data_size; i++) {
+        getc(fp);
+      }
+      fread(header.data, 8, sizeof(char), fp);
+      strncpy(tag, header.data, 4);
+    }
     int num_data = header.data_size / (bits_per_sample_ / 8);
     data_ = new float[num_data];
     num_sample_ = num_data / num_channel_;
@@ -125,6 +135,10 @@ class WavWriter {
 
   void Write(const char* filename) {
     FILE* fp = fopen(filename, "w");
+    if (!fp) {
+      printf("can't create file %s, please check", filename);
+      exit(-1);
+    }
     // init char 'riff' 'WAVE' 'fmt ' 'data'
     WavHeader header;
     char wav_header[44] = {

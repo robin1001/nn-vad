@@ -46,6 +46,9 @@ int main(int argc, char *argv[]) {
   int max_length = 1000;
   option.Register("max-length", &max_length,
                   "Maximum length of the voice segment");
+  std::string dir = "";
+  option.Register("dir", &dir,
+                  "segmentation output dir");
 
   option.Read(argc, argv);
 
@@ -86,13 +89,25 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
   std::vector<float> wave(reader.Data(), reader.Data() + num_samples);
-
-  vad.DoVad(wave, true);
+  CHECK(reader.Data() != NULL);
+  const int batch_wave_size = 160000;  // 10s, 1000 frames
+  for (int i = 0; i < wave.size(); i += batch_wave_size) {
+    if (i + batch_wave_size >= num_samples) {
+      std::vector<float> sub_wave(wave.begin() + i, wave.end());
+      vad.DoVad(sub_wave, true);
+    } else {
+      std::vector<float> sub_wave(wave.begin() + i,
+                                  wave.begin() + i + batch_wave_size);
+      vad.DoVad(sub_wave, false);
+    }
+  }
+  // vad.DoVad(wave, true);
   vad.Lookback();
   const std::vector<bool> &results = vad.Results();
   float time = static_cast<float>(num_samples) / sample_rate;
   int cur = 0;
   printf("%s %f", wav_file.c_str(), time);
+  int count = 0;
   while (cur < results.size()) {
     // silence go ahead
     while (cur < results.size() && !results[cur]) cur++;
@@ -106,6 +121,15 @@ int main(int argc, char *argv[]) {
     // end of sentence, no more speech
     if (start == end) continue;
     printf(" [ %d %d ] ", start, end);
+    if (dir != "") {
+      std::vector<float> sub_wave(wave.begin() + start * 160,
+                                  wave.begin() + end * 160);
+      WavWriter writer(sub_wave.data(), sub_wave.size(), 1, 16000, 16);
+      char filename[1024] = {0};
+      sprintf(filename, "%s/%d.wav", dir.c_str(), count);
+      writer.Write(filename);
+    }
+    count++;
   }
   printf("\n");
   return 0;

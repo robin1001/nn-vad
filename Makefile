@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -g -std=c++11 -MMD -I . -lpthread -msse4.1 -lopenblas -D USE_BLAS
+CXXFLAGS = -g -std=c++11 -MMD -I . -lpthread -msse4.1 #-lopenblas -D USE_BLAS
 
 OBJ = vad.o net.o feature-pipeline.o fft.o
 
